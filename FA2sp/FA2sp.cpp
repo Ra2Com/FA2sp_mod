@@ -2,6 +2,7 @@
 #include "FA2sp.Constants.h"
 
 #include "Helpers/MutexHelper.h"
+#include "Helpers/InstructionSet.h"
 #include "Miscs/Palettes.h"
 #include "Miscs/VoxelDrawer.h"
 #include "Miscs/Exception.h"
@@ -10,6 +11,7 @@
 
 #include <clocale>
 #include <algorithm>
+#include <bit>
 
 HANDLE FA2sp::hInstance;
 std::string FA2sp::STDBuffer;
@@ -18,9 +20,9 @@ std::map<ppmfc::CString, ppmfc::CString> FA2sp::TutorialTextsMap;
 void* FA2sp::pExceptionHandler = nullptr;
 
 bool ExtConfigs::BrowserRedraw;
-int	 ExtConfigs::BrowserRedraw_GuessMode;
-bool ExtConfigs::BrowserRedraw_CleanUp;
-bool ExtConfigs::BrowserRedraw_SafeHouses;
+int	 ExtConfigs::ObjectBrowser_GuessMode;
+bool ExtConfigs::ObjectBrowser_CleanUp;
+bool ExtConfigs::ObjectBrowser_SafeHouses;
 bool ExtConfigs::AllowIncludes;
 bool ExtConfigs::AllowPlusEqual;
 bool ExtConfigs::TutorialTexts_Hide;
@@ -46,15 +48,18 @@ bool ExtConfigs::SaveMap_OnlySaveMAP;
 int ExtConfigs::SaveMap_DefaultPreviewOptionMP;
 int ExtConfigs::SaveMap_DefaultPreviewOptionSP;
 bool ExtConfigs::VerticalLayout;
-bool ExtConfigs::FastResize;
 int ExtConfigs::RecentFileLimit;
 int ExtConfigs::MultiSelectionColor;
+bool ExtConfigs::MultiSelectionShiftDeselect;
 bool ExtConfigs::RandomTerrainObjects;
-int ExtConfigs::MaxVoxelFacing;
+unsigned int ExtConfigs::MaxVoxelFacing;
 bool ExtConfigs::DDrawInVideoMem;
 bool ExtConfigs::DDrawEmulation;
 bool ExtConfigs::NoHouseNameTranslation;
 bool ExtConfigs::EnableMultiSelection;
+bool ExtConfigs::ExtendedValidationNoError;
+bool ExtConfigs::HideNoRubbleBuilding;
+bool ExtConfigs::ModernObjectBrowser;
 
 MultimapHelper Variables::Rules = { &CINI::Rules(), &CINI::CurrentDocument() };
 MultimapHelper Variables::FAData = { &CINI::FAData() };
@@ -62,9 +67,10 @@ MultimapHelper Variables::FAData = { &CINI::FAData() };
 void FA2sp::ExtConfigsInitialize()
 {	
 	ExtConfigs::BrowserRedraw = CINI::FAData->GetBool("ExtConfigs", "BrowserRedraw");
-	ExtConfigs::BrowserRedraw_GuessMode = CINI::FAData->GetInteger("ExtConfigs", "BrowserRedraw.GuessMode", 0);
-	ExtConfigs::BrowserRedraw_CleanUp = CINI::FAData->GetBool("ExtConfigs", "BrowserRedraw.CleanUp");
-	ExtConfigs::BrowserRedraw_SafeHouses = CINI::FAData->GetBool("ExtConfigs", "BrowserRedraw.SafeHouses");
+	ExtConfigs::ModernObjectBrowser = CINI::FAData->GetBool("ExtConfigs", "ModernObjectBrowser");
+	ExtConfigs::ObjectBrowser_GuessMode = CINI::FAData->GetInteger("ExtConfigs", "ObjectBrowser.GuessMode", 0);
+	ExtConfigs::ObjectBrowser_CleanUp = CINI::FAData->GetBool("ExtConfigs", "ObjectBrowser.CleanUp");
+	ExtConfigs::ObjectBrowser_SafeHouses = CINI::FAData->GetBool("ExtConfigs", "ObjectBrowser.SafeHouses");
 	
 	ExtConfigs::AllowIncludes = CINI::FAData->GetBool("ExtConfigs", "AllowIncludes");
 	ExtConfigs::AllowPlusEqual = CINI::FAData->GetBool("ExtConfigs", "AllowPlusEqual");
@@ -112,33 +118,17 @@ void FA2sp::ExtConfigsInitialize()
 
 	ExtConfigs::VerticalLayout = CINI::FAData->GetBool("ExtConfigs", "VerticalLayout");
 
-	ExtConfigs::FastResize = CINI::FAData->GetBool("ExtConfigs", "FastResize");
-
 	ExtConfigs::RecentFileLimit = std::clamp(CINI::FAData->GetInteger("ExtConfigs", "RecentFileLimit"), 4, 9);
 
 	ExtConfigs::MultiSelectionColor = CINI::FAData->GetColor("ExtConfigs", "MultiSelectionColor", 0x00FF00);
+	ExtConfigs::MultiSelectionShiftDeselect = CINI::FAData->GetBool("ExtConfigs", "MultiSelectionShiftDeselect");
 
 	ExtConfigs::RandomTerrainObjects = CINI::FAData->GetBool("ExtConfigs", "RandomTerrainObjects");
 
 	ExtConfigs::MaxVoxelFacing = CINI::FAData->GetInteger("ExtConfigs", "MaxVoxelFacing", 8);
-	auto Int2Highest = [](unsigned int v)
-	{
-		unsigned int r; // result of log2(v) will go here
-		unsigned int shift;
-
-		r = static_cast<unsigned int>(v > 0xFFFF) << 4; v >>= r;
-		shift = static_cast<unsigned int>(v > 0xFF) << 3; v >>= shift; r |= shift;
-		shift = static_cast<unsigned int>(v > 0xF) << 2; v >>= shift; r |= shift;
-		shift = static_cast<unsigned int>(v > 0x3) << 1; v >>= shift; r |= shift;
-		r |= (v >> 1);
-		return r;
-	};
-	ExtConfigs::MaxVoxelFacing = 1 << Int2Highest(ExtConfigs::MaxVoxelFacing);
-	if (ExtConfigs::MaxVoxelFacing < 8)
-		ExtConfigs::MaxVoxelFacing = 8;
-	else if (ExtConfigs::MaxVoxelFacing > 256)
-		ExtConfigs::MaxVoxelFacing = 256;
-
+	ExtConfigs::MaxVoxelFacing = std::clamp(
+		1 << (std::bit_width(ExtConfigs::MaxVoxelFacing) - 1), 8, 256
+	);
 	// Disable it for now
 	ExtConfigs::MaxVoxelFacing = 8;
 
@@ -147,7 +137,19 @@ void FA2sp::ExtConfigsInitialize()
 
 	ExtConfigs::NoHouseNameTranslation = CINI::FAData->GetBool("ExtConfigs", "NoHouseNameTranslation");
 
-	ExtConfigs::EnableMultiSelection = CINI::FAData->GetBool("ExtConfigs", "EnableMultiSelection");
+	ExtConfigs::EnableMultiSelection = CINI::FAData->GetBool("ExtConfigs", "EnableMultiSelection", true);
+	if (!ExtConfigs::EnableMultiSelection)
+	{
+		MessageBox(NULL, 
+			"You have disabled Multi-selection, this tag is supposed to be deprecated in future "
+			"version of FA2sp. So if you are disabling it because of the feature has some problem, "
+			"please report it at https://github.com/secsome/FA2sp/issues. Thanks for your help.",
+			"FA2sp", MB_OK | MB_ICONINFORMATION
+		);
+	}
+
+	ExtConfigs::ExtendedValidationNoError = CINI::FAData->GetBool("ExtConfigs", "ExtendedValidationNoError");
+	ExtConfigs::HideNoRubbleBuilding = CINI::FAData->GetBool("ExtConfigs", "HideNoRubbleBuilding");
 }
 
 // DllMain
@@ -163,24 +165,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD dwReason, LPVOID v)
 	return TRUE;
 }
 
-// Export Functions
-//SYRINGE_HANDSHAKE(pInfo)
-//{
-//	if (pInfo) {
-//		if (pInfo->)
-//		{
-//			sprintf_s(pInfo->Message, pInfo->cchMessage, APPLY_INFO);
-//			return S_OK;
-//		}
-//		else
-//		{
-//			sprintf_s(pInfo->Message, pInfo->cchMessage, "Requires Official Final Alert 2 version 1.02.");
-//			return S_FALSE;
-//		}
-//	}
-//	return E_POINTER;
-//}
-
 #define ENABLE_VISUAL_STYLE
 static ULONG_PTR ulCookie;
 
@@ -190,6 +174,9 @@ DEFINE_HOOK(537129, ExeRun, 9)
 	Logger::Initialize();
 	Logger::Info(APPLY_INFO);
 	Logger::Wrap(1);
+
+	Logger::Raw("==============================\nCPU Report:\n%s==============================\n", 
+		InstructionSet::Report().c_str());
 
 	if (DetachFromDebugger())
 		Logger::Info("Syringe detached!\n");
@@ -201,7 +188,8 @@ DEFINE_HOOK(537129, ExeRun, 9)
 	
 #endif
 	bool bMutexResult = MutexHelper::Attach(MUTEX_HASH_VAL);
-	if (!bMutexResult) {
+	if (!bMutexResult)
+	{
 		if (MessageBox(nullptr, MUTEX_INIT_ERROR_MSG, MUTEX_INIT_ERROR_TIT, MB_YESNO | MB_ICONQUESTION) != IDYES)
 			ExitProcess(114514);
 	}

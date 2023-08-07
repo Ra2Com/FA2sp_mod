@@ -159,6 +159,7 @@ DEFINE_HOOK(43209D, CFinalSunDlg_Update_TranslateMenuItems, A)
     translateMenuItem(40092, "Menu.MapTools.PaintCliffFront");
     translateMenuItem(40093, "Menu.MapTools.PaintCliffBack");
     translateMenuItem(40133, "Menu.MapTools.SearchWaypoint");
+    translateMenuItem(40134, "Menu.MapTools.NavigateCoordinate");
     translateMenuItem(40135, "Menu.MapTools.ToolScripts");
 
     if (0)
@@ -228,7 +229,7 @@ DEFINE_HOOK(436EE0, CFinalSunDlg_AddToRecentFile, 7)
 {
     REF_STACK(ppmfc::CString, lpPath, 0x4);
 
-    std::string filepath = lpPath;
+    std::string filepath = lpPath.m_pchData;
     auto& recentfiles = CFinalSunAppExt::RecentFilesExt;
     std::vector<std::string> sortedrecentfiles;
     auto itr = std::find_if(recentfiles.begin(), recentfiles.end(),
@@ -253,7 +254,8 @@ DEFINE_HOOK(436EE0, CFinalSunDlg_AddToRecentFile, 7)
         recentfiles = sortedrecentfiles;
 
         CINI ini;
-        std::string path = CFinalSunApp::Instance->ExePath + "\\FinalAlert.ini";
+        std::string path = CFinalSunApp::Instance->ExePath();
+        path += "\\FinalAlert.ini";
         ini.ClearAndLoad(path.c_str());
 
         for (size_t i = 0; i < recentfiles.size(); ++i)
@@ -305,7 +307,7 @@ DEFINE_HOOK(42D736, CFinalSunDlg_NewMap_Theater, 5)
     GET_STACK(int, theaterIndex, STACK_OFFS(0x161C, 0x15D4));
 
     auto theaters = TheaterHelpers::GetEnabledTheaterNames();
-    auto theaterName = ppmfc::CString(theaterIndex < theaters.size() ? theaters.at(theaterIndex) : "");
+    auto theaterName = theaterIndex < theaters.size() ? theaters[theaterIndex] : ppmfc::CString("");
     char* pBuffer = new char[theaterName.GetLength() + 1];
     strcpy(pBuffer, theaterName);
 

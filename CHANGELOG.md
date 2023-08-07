@@ -1,7 +1,40 @@
 # FINALALERT2 - SP  CHANGELOG
 
-## RELEASE 1.5.2 (2023-01-XX)
-- Fixed the bug that money calculation is incorrect.
+## RELEASE 1.6.2 (2023-07-18)
+- Renamed ***ExtConfig*** : `BrowserRedraw.GuessMode` to `ObjectBrowser.GuessMode`
+- Renamed ***ExtConfig*** : `BrowserRedraw.CleanUp` to `ObjectBrowser.CleanUp`
+- Renamed ***ExtConfig*** : `BrowserRedraw.SafeHouses` to `ObjectBrowser.SafeHouses`
+- Now buildings whose hp percentage lower than `[AudioVisual]>ConditionYellow` will be displayed as damaged one
+- Now buildings whose hp is 0 will be displayed as their rubble frame
+    - Currently the rubble will probably be drawn with an incorrect palette
+- New ***ExtConfig*** : `HideNoRubbleBuilding` = **BOOLEAN**, defaults to false, enable it so Buildings with `LeaveRubble=no` will be hide if their HP = 0
+- New ***ExtConfig*** : `MultiSelectionShiftDeselect` = **BOOLEAN**, defaults to false, enable it so deselect all hotkey would be CTRL+SHIFT+D, otherwise it would be CTRL+D
+- Added hotkey CTRL+SHIFT+F for Navigate to coordinate
+- SliderCtrl now displays tooltip indicating current strength of the object
+- Now Map Editor will hint if the map file had been externally modified. Can be translated by `FileWatcherMessage`.
+
+## RELEASE 1.6.1 (2023-05-06)
+- New Map Tool: Navigate to coordinate, can be translated by `Menu.MapTools.NavigateCoordinate`, more locolization tags could be found in the document
+- Fixed the bug that Taskforce window didn't translate message properly
+- ***ExtConfig*** : `EnableMultiSelection` defaults to true since this version. This tag is supposed to be deprecated in 1.7.0.
+
+## RELEASE 1.6.0 (2023-04-30)
+- **ONLY YURI's REVENGE WILL BE SUPPORTED SINCE FA2SP 1.6.0**
+- Reimplemented file reading system
+- Support Ares Custom Foundation
+- Map validator now checks overlapping structures, raise an error instead of warning for now. String can be modified by `MV_OverlapStructures`
+    - **You should manually add buildings that need to be ignored in `FADATA.INI` section `[StructureOverlappingCheckIgnores]`, as it is raising an error, and you probably want some lightposts to be ignored.**
+    - The Ignorance list might be removed in the future, when I can finally figure out what is that stupid problem
+- Map validator now checks missing logic params, raise an error instead of warning for now. String can be modified by `MV_LogicMissingParams`
+- Fixed the bug that lighting is not reset correctly when loading/creating a map
+- Fixed the bug that smudges and basenodes drifting away when resizing the map
+- Multiselection now supports copy & paste
+- Multiselection operations(raise or lower cells) now supports undo & redo
+- New ***ExtConfig*** : `ExtendedValidationNoError` = **BOOLEAN**, defaults to false
+
+## RELEASE 1.5.2 (2023-03-03)
+- Fixed the bug that money calculation is incorrect
+- Now SHP Vehicles more than 8 facings are supported
 - New ***ExtConfig*** : `EnableMultiSelection` = **BOOLEAN**, defaults to false
 
 ## RELEASE 1.5.1 (2023-01-12)

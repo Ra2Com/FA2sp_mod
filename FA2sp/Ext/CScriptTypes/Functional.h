@@ -126,6 +126,7 @@ static void CScriptTypes_LoadParams_Target(ppmfc::CComboBox& comboBox)
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.5", "5 - Vehicles")), 5);
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.6", "6 - Factories")), 6);
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.7", "7 - Base defenses")), 7);
+    comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.8", "8 - Base threats")), 7);
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.9", "9 - Power plants")), 9);
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.10", "10 - Occupiables")), 10);
     comboBox.SetItemData(comboBox.AddString(Translations::TranslateOrDefault("ScriptParam.Target.11", "11 - Tech Buildings")), 11);
@@ -144,7 +145,7 @@ static void CScriptTypes_LoadParams_Waypoint(ppmfc::CComboBox& comboBox)
         memset(waypoints, -1, sizeof waypoints);
         if (auto entries = doc.GetSection("Waypoints"))
             for (auto& x : entries->GetEntities())
-                if (x.first != "Name" && !STDHelpers::IsNullOrEmpty(x.second))
+                if (x.first != "Name" && !STDHelpers::IsNoneOrEmpty(x.second))
                 {
                     int l = atoi(x.first);
                     if (l <= 701 && l >= 0)
@@ -166,7 +167,7 @@ static void CScriptTypes_LoadParams_Waypoint(ppmfc::CComboBox& comboBox)
         std::map<int, int> waypoints;
         if (auto entries = doc.GetSection("Waypoints"))
             for (auto& x : entries->GetEntities())
-                if (x.first != "Name" && !STDHelpers::IsNullOrEmpty(x.second))
+                if (x.first != "Name" && !STDHelpers::IsNoneOrEmpty(x.second))
                 {
                     int l = atoi(x.first);
                     if (l >= 0)
@@ -238,7 +239,7 @@ static void CScriptTypes_LoadParams_GlobalVariables(ppmfc::CComboBox& comboBox)
         CString text;
         for (auto& x : entities->GetEntities())
         {
-            if (x.first != "Name" && !STDHelpers::IsNullOrEmpty(x.first))
+            if (x.first != "Name" && !STDHelpers::IsNoneOrEmpty(x.first))
             {
                 int l = atoi(x.first);
                 text.Format("%d - %s", l, x.second);
@@ -259,7 +260,7 @@ static void CScriptTypes_LoadParams_ScriptTypes(ppmfc::CComboBox& comboBox)
         CString text, finaltext = "";
         for (auto& ent : entities->GetEntities())
         {
-            if (doc.SectionExists(ent.second) && !STDHelpers::IsNullOrEmpty(ent.second))
+            if (doc.SectionExists(ent.second) && !STDHelpers::IsNoneOrEmpty(ent.second))
             {
                 int id = atoi(ent.first);
                 text = doc.GetString(ent.second, "Name");
@@ -282,7 +283,7 @@ static void CScriptTypes_LoadParams_TeamTypes(ppmfc::CComboBox& comboBox)
         CString text, finaltext = "";
         for (auto& ent : entities->GetEntities())
         {
-            if (doc.SectionExists(ent.second) && !STDHelpers::IsNullOrEmpty(ent.second))
+            if (doc.SectionExists(ent.second) && !STDHelpers::IsNoneOrEmpty(ent.second))
             {
                 int id = atoi(ent.first);
                 text = doc.GetString(ent.second, "Name");
@@ -333,7 +334,7 @@ static void CScriptTypes_LoadParams_Sounds(ppmfc::CComboBox& comboBox)
         CString text;
         for (auto& ent : entities->GetEntities())
         {
-            if (sound.SectionExists(ent.second) && !STDHelpers::IsNullOrEmpty(ent.second))
+            if (sound.SectionExists(ent.second) && !STDHelpers::IsNoneOrEmpty(ent.second))
             {
                 int id = atoi(ent.first);
                 text.Format("%d - %s", id, ent.second);
@@ -375,7 +376,7 @@ static void CScriptTypes_LoadParams_Themes(ppmfc::CComboBox& comboBox)
         CString text;
         for (auto& ent : entities->GetEntities())
         {
-            if (theme.SectionExists(ent.second) && !STDHelpers::IsNullOrEmpty(ent.second))
+            if (theme.SectionExists(ent.second) && !STDHelpers::IsNoneOrEmpty(ent.second))
             {
                 int id = atoi(ent.first);
                 text.Format("%d - %s", id, ent.second);
@@ -402,7 +403,7 @@ static void CScriptTypes_LoadParams_LocalVariables(ppmfc::CComboBox& comboBox)
         CString text;
         for (auto& x : entities->GetEntities())
         {
-            if (STDHelpers::IsNullOrEmpty(x.first) || x.first == "Name")
+            if (STDHelpers::IsNoneOrEmpty(x.first) || x.first == "Name")
                 continue;
             int l = atoi(x.first);
             text.Format("%d - %s", l, x.second);

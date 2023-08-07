@@ -7,7 +7,9 @@
 
 While FA2sp is independent of FA2Ext by AlexB, you cannot use FA2sp with using FA2Ext.
 
-Currently, FA2sp uses `Visual Studio 2022 (v143)` with `/std:c++latest` to build the lastest versions.
+Currently, FA2sp uses `Visual Studio 2022 (v143)` with `/std:c++20` to build the lastest versions.
+
+Due to the limited energy of developers, starting from version 1.6.0, FA2sp will no longer provide support for any version other than Yuri's Revenge 1.01 and mods based on it. Please understand.
 
 Downloads
 ---------
@@ -21,12 +23,12 @@ You can choose one of the following:
 Changelog
 ---------
 
-You can check the full changelog [here](https://github.com/secsome/FA2sp/blob/master/CHANGELOG.md).
+You can check the full changelog [here](./CHANGELOG.md).
 
 Document
 ---------
 
-You can check the document [here](https://github.com/secsome/FA2sp/blob/master/DOCUMENT.md).
+You can check the document [here](./DOCUMENT.md).
 
-[Unexplored](https://github.com/secsome/FA2sp/blob/master/UNEXPLORED.md)
+[Unexplored](./UNEXPLORED.md)
 ---------

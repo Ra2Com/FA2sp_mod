@@ -10,7 +10,10 @@
 #include <format>
 
 int CMapDataExt::OreValue[4] { -1,-1,-1,-1 };
+unsigned short CMapDataExt::CurrentRenderBuildingStrength;
+std::vector<BuildingRenderData> CMapDataExt::BuildingRenderDatasFix;
 std::vector<OverlayTypeData> CMapDataExt::OverlayTypeDatas;
+std::unordered_map<int, BuildingDataExt> CMapDataExt::BuildingDataExts;
 
 int CMapDataExt::GetOreValue(unsigned char nOverlay, unsigned char nOverlayData)
 {
